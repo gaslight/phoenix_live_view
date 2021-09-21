@@ -134,6 +134,7 @@ export default class DOMPatch {
             this.trackBefore("updated", fromEl, toEl)
             DOM.mergeAttrs(fromEl, toEl, {isIgnored: true})
             updates.push(fromEl)
+            DOM.applyStickyOperations(fromEl)
             return false
           }
           if(fromEl.type === "number" && (fromEl.validity && fromEl.validity.badInput)){ return false }
@@ -142,6 +143,7 @@ export default class DOMPatch {
               this.trackBefore("updated", fromEl, toEl)
               updates.push(fromEl)
             }
+            DOM.applyStickyOperations(fromEl)
             return false
           }
 
@@ -151,6 +153,7 @@ export default class DOMPatch {
             DOM.mergeAttrs(fromEl, toEl, {exclude: [PHX_STATIC]})
             if(prevSession !== ""){ fromEl.setAttribute(PHX_SESSION, prevSession) }
             fromEl.setAttribute(PHX_ROOT_ID, this.rootID)
+            DOM.applyStickyOperations(fromEl)
             return false
           }
 
@@ -165,12 +168,14 @@ export default class DOMPatch {
             DOM.mergeFocusedInput(fromEl, toEl)
             DOM.syncAttrsToProps(fromEl)
             updates.push(fromEl)
+            DOM.applyStickyOperations(fromEl)
             return false
           } else {
             if(DOM.isPhxUpdate(toEl, phxUpdate, ["append", "prepend"])){
               appendPrependUpdates.push(new DOMPostMorphRestorer(fromEl, toEl, toEl.getAttribute(phxUpdate)))
             }
             DOM.syncAttrsToProps(toEl)
+            DOM.applyStickyOperations(toEl)
             this.trackBefore("updated", fromEl, toEl)
             return true
           }
