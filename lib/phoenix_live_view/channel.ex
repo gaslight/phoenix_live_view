@@ -55,6 +55,7 @@ defmodule Phoenix.LiveView.Channel do
   @impl true
   def handle_info({Phoenix.Channel, auth_payload, from, phx_socket}, ref) do
     Process.demonitor(ref)
+    IO.inspect(auth_payload, label: "before mount")
     mount(auth_payload, from, phx_socket)
   rescue
     # Normalize exceptions for better client debugging
@@ -768,44 +769,45 @@ defmodule Phoenix.LiveView.Channel do
 
     case Session.verify_session(endpoint, topic, session_token, params["static"]) do
       {:ok, %Session{} = verified} ->
+        IO.inspect(phx_socket, label: "socket in mount")
         %Phoenix.Socket{private: %{connect_info: connect_info}} = phx_socket
 
         case connect_info do
-          %{session: nil} ->
-            Logger.debug("""
-            LiveView session was misconfigured or the user token is outdated.
+          # %{session: nil} ->
+          #   Logger.debug("""
+          #   LiveView session was misconfigured or the user token is outdated.
 
-            1) Ensure your session configuration in your endpoint is in a module attribute:
+          #   1) Ensure your session configuration in your endpoint is in a module attribute:
 
-                @session_options [
-                  ...
-                ]
+          #       @session_options [
+          #         ...
+          #       ]
 
-            2) Change the `plug Plug.Session` to use said attribute:
+          #   2) Change the `plug Plug.Session` to use said attribute:
 
-                plug Plug.Session, @session_options
+          #       plug Plug.Session, @session_options
 
-            3) Also pass the `@session_options` to your LiveView socket:
+          #   3) Also pass the `@session_options` to your LiveView socket:
 
-                socket "/live", Phoenix.LiveView.Socket,
-                  websocket: [connect_info: [session: @session_options]]
+          #       socket "/live", Phoenix.LiveView.Socket,
+          #         websocket: [connect_info: [session: @session_options]]
 
-            4) Ensure the `protect_from_forgery` plug is in your router pipeline:
+          #   4) Ensure the `protect_from_forgery` plug is in your router pipeline:
 
-                plug :protect_from_forgery
+          #       plug :protect_from_forgery
 
-            5) Define the CSRF meta tag inside the `<head>` tag in your layout:
+          #   5) Define the CSRF meta tag inside the `<head>` tag in your layout:
 
-                <%= csrf_meta_tag() %>
+          #       <%= csrf_meta_tag() %>
 
-            6) Pass it forward in your app.js:
+          #   6) Pass it forward in your app.js:
 
-                let csrfToken = document.querySelector("meta[name='csrf-token']").getAttribute("content");
-                let liveSocket = new LiveSocket("/live", Socket, {params: {_csrf_token: csrfToken}});
-            """)
+          #       let csrfToken = document.querySelector("meta[name='csrf-token']").getAttribute("content");
+          #       let liveSocket = new LiveSocket("/live", Socket, {params: {_csrf_token: csrfToken}});
+          #   """)
 
-            GenServer.reply(from, {:error, %{reason: "stale"}})
-            {:stop, :shutdown, :no_state}
+          #   GenServer.reply(from, {:error, %{reason: "stale"}})
+          #   {:stop, :shutdown, :no_state}
 
           %{} ->
             case authorize_session(verified, endpoint, params) do
@@ -822,13 +824,15 @@ defmodule Phoenix.LiveView.Channel do
             end
         end
 
-      {:error, _reason} ->
+      {:error, reason} ->
+        IO.inspect(reason, label: "Error reason")
         GenServer.reply(from, {:error, %{reason: "stale"}})
         {:stop, :shutdown, :no_state}
     end
   end
 
   defp mount(%{}, from, phx_socket) do
+    IO.inspect("in mount error")
     Logger.error("Mounting #{phx_socket.topic} failed because no session was provided")
     GenServer.reply(from, {:error, %{reason: "stale"}})
     {:stop, :shutdown, :no_session}
@@ -999,6 +1003,7 @@ defmodule Phoenix.LiveView.Channel do
   defp put_container(%Session{}, nil = _route, %{} = diff), do: diff
 
   defp reply_mount(result, from, %Session{} = session, route) do
+    IO.inspect(result, label: "reply_mount")
     case result do
       {:ok, diff, :mount, new_state} ->
         reply = put_container(session, route, %{rendered: diff})

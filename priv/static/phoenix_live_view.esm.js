@@ -2034,6 +2034,7 @@ var View = class {
     return reply;
   }
   onJoin(resp) {
+    console.log(resp);
     let { rendered, container } = resp;
     if (container) {
       let [tag, attrs] = container;
@@ -2046,6 +2047,7 @@ var View = class {
     this.applyDiff("mount", rendered, ({ diff, events }) => {
       this.rendered = new Rendered(this.id, diff);
       let html = this.renderContainer(null, "join");
+      console.log(html);
       this.dropPendingRefs();
       let forms = this.formsForRecovery(html);
       this.joinCount++;
@@ -2099,6 +2101,7 @@ var View = class {
     });
   }
   applyJoinPatch(live_patch, html, events) {
+    console.log("applying join patch");
     this.attachTrueDocEl();
     let patch = new DOMPatch(this, this.el, this.id, html, null);
     patch.markPrunableContentForRemoval();
@@ -2351,6 +2354,7 @@ var View = class {
     });
   }
   onJoinError(resp) {
+    console.log(resp);
     if (resp.reason === "unauthorized" || resp.reason === "stale") {
       this.log("error", () => ["unauthorized live_redirect. Falling back to page request", resp]);
       return this.onRedirect({ to: this.href });
@@ -2832,6 +2836,7 @@ var LiveSocket = class {
       this.unloaded = true;
     });
     this.socket.onOpen(() => {
+      console.log("my socket is opened");
       if (this.isUnloaded()) {
         window.location.reload();
       }
@@ -2919,6 +2924,7 @@ var LiveSocket = class {
     });
   }
   wrapPush(view, opts, push) {
+    console.log("in wrap push", opts);
     let latency = this.getLatencySim();
     let oldJoinCount = view.joinCount;
     if (!latency) {

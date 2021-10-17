@@ -148,6 +148,7 @@ export default class LiveSocket {
       this.unloaded = true
     })
     this.socket.onOpen(() => {
+      console.log('my socket is opened');
       if(this.isUnloaded()){
         // reload page if being restored from back/forward cache and browser does not emit "pageshow"
         window.location.reload()
@@ -235,6 +236,7 @@ export default class LiveSocket {
   }
 
   wrapPush(view, opts, push){
+    console.log('in wrap push', opts);
     let latency = this.getLatencySim()
     let oldJoinCount = view.joinCount
     if(!latency){

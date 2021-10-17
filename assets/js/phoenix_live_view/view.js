@@ -220,6 +220,7 @@ export default class View {
   }
 
   onJoin(resp){
+    console.log(resp);
     let {rendered, container} = resp
     if(container){
       let [tag, attrs] = container
@@ -232,7 +233,8 @@ export default class View {
     Browser.dropLocal(this.liveSocket.localStorage, window.location.pathname, CONSECUTIVE_RELOADS)
     this.applyDiff("mount", rendered, ({diff, events}) => {
       this.rendered = new Rendered(this.id, diff)
-      let html = this.renderContainer(null, "join")
+      let html = this.renderContainer(null, "join");
+      console.log(html);
       this.dropPendingRefs()
       let forms = this.formsForRecovery(html)
       this.joinCount++
@@ -296,6 +298,7 @@ export default class View {
   }
 
   applyJoinPatch(live_patch, html, events){
+    console.log('applying join patch');
     this.attachTrueDocEl()
     let patch = new DOMPatch(this, this.el, this.id, html, null)
     patch.markPrunableContentForRemoval()
@@ -567,6 +570,7 @@ export default class View {
   }
 
   onJoinError(resp){
+    console.log(resp);
     if(resp.reason === "unauthorized" || resp.reason === "stale"){
       this.log("error", () => ["unauthorized live_redirect. Falling back to page request", resp])
       return this.onRedirect({to: this.href})
