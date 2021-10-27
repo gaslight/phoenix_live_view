@@ -1404,6 +1404,7 @@ var DOMPatch = class {
     });
   }
   perform() {
+    console.log("performing dom patch", this.container);
     let { view, liveSocket, container, html } = this;
     let targetContainer = this.isCIDPatch() ? this.targetCIDContainer(html) : container;
     if (this.isCIDPatch() && !targetContainer) {
@@ -1426,7 +1427,7 @@ var DOMPatch = class {
     this.trackBefore("updated", container, container);
     liveSocket.time("morphdom", () => {
       morphdom_esm_default(targetContainer, diffHTML, {
-        childrenOnly: targetContainer.getAttribute(PHX_COMPONENT) === null,
+        childrenOnly: true,
         getNodeKey: (node) => {
           return dom_default.isPhxDestroyed(node) ? null : node.id;
         },
@@ -2050,6 +2051,7 @@ var View = class {
       console.log(html);
       this.dropPendingRefs();
       let forms = this.formsForRecovery(html);
+      console.log(forms);
       this.joinCount++;
       if (forms.length > 0) {
         forms.forEach(([form, newForm, newCid], i) => {
@@ -2103,7 +2105,7 @@ var View = class {
   applyJoinPatch(live_patch, html, events) {
     console.log("applying join patch");
     this.attachTrueDocEl();
-    let patch = new DOMPatch(this, this.el, this.id, html, null);
+    let patch = new DOMPatch(this, this.el.renderRoot, this.id, html, null);
     patch.markPrunableContentForRemoval();
     this.performPatch(patch, false);
     this.joinNewChildren();
@@ -2244,7 +2246,7 @@ var View = class {
     } else if (!isEmpty(diff)) {
       this.liveSocket.time("full patch complete", () => {
         let html = this.renderContainer(diff, "update");
-        let patch = new DOMPatch(this, this.el, this.id, html, null);
+        let patch = new DOMPatch(this, this.el.renderRoot, this.id, html, null);
         phxChildrenAdded = this.performPatch(patch, true);
       });
     }
@@ -2265,7 +2267,7 @@ var View = class {
     if (isEmpty(diff))
       return false;
     let html = this.rendered.componentToString(cid);
-    let patch = new DOMPatch(this, this.el, this.id, html, cid);
+    let patch = new DOMPatch(this, this.el.renderRoot, this.id, html, cid);
     let childrenAdded = this.performPatch(patch, true);
     return childrenAdded;
   }
@@ -2442,7 +2444,7 @@ var View = class {
     });
   }
   undoRefs(ref) {
-    dom_default.all(this.el, `[${PHX_REF}="${ref}"]`, (el) => {
+    dom_default.all(this.el.renderRoot, `[${PHX_REF}="${ref}"]`, (el) => {
       let disabledVal = el.getAttribute(PHX_DISABLED);
       el.removeAttribute(PHX_REF);
       if (el.getAttribute(PHX_READONLY) !== null) {
@@ -2668,6 +2670,7 @@ var View = class {
       });
     } else {
       let formData = serializeForm(formEl);
+      console.log("form data", formData);
       this.pushWithReply(refGenerator, "event", {
         type: "form",
         event: phxEvent,
@@ -3405,6 +3408,7 @@ var LiveSocket = class {
   }
 };
 export {
-  LiveSocket
+  LiveSocket,
+  View
 };
 //# sourceMappingURL=phoenix_live_view.esm.js.map

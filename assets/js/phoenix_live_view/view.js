@@ -236,7 +236,8 @@ export default class View {
       let html = this.renderContainer(null, "join");
       console.log(html);
       this.dropPendingRefs()
-      let forms = this.formsForRecovery(html)
+      let forms = this.formsForRecovery(html);
+      console.log(forms);
       this.joinCount++
 
       if(forms.length > 0){
@@ -300,7 +301,7 @@ export default class View {
   applyJoinPatch(live_patch, html, events){
     console.log('applying join patch');
     this.attachTrueDocEl()
-    let patch = new DOMPatch(this, this.el, this.id, html, null)
+    let patch = new DOMPatch(this, this.el.renderRoot, this.id, html, null)
     patch.markPrunableContentForRemoval()
     this.performPatch(patch, false)
     this.joinNewChildren()
@@ -450,7 +451,7 @@ export default class View {
     } else if(!isEmpty(diff)){
       this.liveSocket.time("full patch complete", () => {
         let html = this.renderContainer(diff, "update")
-        let patch = new DOMPatch(this, this.el, this.id, html, null)
+        let patch = new DOMPatch(this, this.el.renderRoot, this.id, html, null)
         phxChildrenAdded = this.performPatch(patch, true)
       })
     }
@@ -473,7 +474,7 @@ export default class View {
   componentPatch(diff, cid){
     if(isEmpty(diff)) return false
     let html = this.rendered.componentToString(cid)
-    let patch = new DOMPatch(this, this.el, this.id, html, cid)
+    let patch = new DOMPatch(this, this.el.renderRoot, this.id, html, cid)
     let childrenAdded = this.performPatch(patch, true)
     return childrenAdded
   }
@@ -644,7 +645,7 @@ export default class View {
   }
 
   undoRefs(ref){
-    DOM.all(this.el, `[${PHX_REF}="${ref}"]`, el => {
+    DOM.all(this.el.renderRoot, `[${PHX_REF}="${ref}"]`, el => {
       let disabledVal = el.getAttribute(PHX_DISABLED)
       // remove refs
       el.removeAttribute(PHX_REF)
@@ -889,6 +890,7 @@ export default class View {
       })
     } else {
       let formData = serializeForm(formEl)
+      console.log('form data', formData);
       this.pushWithReply(refGenerator, "event", {
         type: "form",
         event: phxEvent,
